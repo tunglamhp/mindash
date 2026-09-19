@@ -9,7 +9,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 Nothing yet.
 
-## [1.0.0] — 2026-02-14
+## [1.0.0] — 2026-09-19
 
 The first release: a complete homelab dashboard with a working control plane.
 

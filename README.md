@@ -9,9 +9,10 @@ itself, with no plugins to install.
 
 One Rust binary, one WebAssembly bundle, no runtime dependencies.
 
+[![CI](https://github.com/tunglamhp/mindash/actions/workflows/ci.yml/badge.svg)](https://github.com/tunglamhp/mindash/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/tunglamhp/mindash?color=2ed573)](https://github.com/tunglamhp/mindash/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-2ed573.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-1.80%2B-2ed573.svg)](https://www.rust-lang.org)
-[![Version](https://img.shields.io/badge/version-1.0.0-2ed573.svg)](CHANGELOG.md)
 
 ---
 

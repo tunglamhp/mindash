@@ -1,4 +1,3 @@
-const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const fs = await import('node:fs');
 const { spawn } = await import('node:child_process');
 import { fileURLToPath } from 'node:url';
@@ -7,6 +6,37 @@ const HERE = path.dirname(fileURLToPath(import.meta.url)).replace(/\\\\/g, '/');
 const profile = HERE + '/_cdp-profile';
 const PORT = process.argv[2] || '5050';
 const BASE = `http://127.0.0.1:${PORT}`;
+
+/**
+ * Find a Chrome binary.
+ *
+ * Checked in order: an explicit CHROME override, then the usual locations per
+ * platform. Hardcoding the Windows path meant this suite could only ever run on
+ * the machine it was written on, and failed in CI with ENOENT.
+ */
+function findChrome() {
+  if (process.env.CHROME && fs.existsSync(process.env.CHROME)) return process.env.CHROME;
+  const candidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  throw new Error(
+    'no Chrome found. Set CHROME=/path/to/chrome. Looked in:\n  ' +
+      candidates.join('\n  ')
+  );
+}
+
+const CHROME = findChrome();
 
 // ---------------------------------------------------------------------------
 // Fixture

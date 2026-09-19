@@ -3,6 +3,3 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/tunglamhp/mindash/security/advisories/new
     about: Report privately. Please do not open a public issue for a vulnerability.
-  - name: Question or idea
-    url: https://github.com/tunglamhp/mindash/discussions
-    about: For setup help and open-ended discussion.

@@ -1,0 +1,34 @@
+# Rust build output
+rust/target/
+
+# Local runtime data: the server writes config.json and its secrets here
+rust/devdata/
+data/
+
+# Browser profiles, screenshots and fixtures created by the verification tooling
+tools/_cdp-profile/
+tools/_edge-profile/
+tools/shots/
+tools/_demo/
+tools/_*.mjs
+tools/_*.py
+
+# Throwaway SSH test target: the container keypair lives here
+rust/.sshtarget/
+
+# Trunk staging directory
+rust/static/assets/.stage/
+
+# Logs
+*.log
+*.out
+
+# Python caches
+__pycache__/
+**/__pycache__/
+
+# Editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

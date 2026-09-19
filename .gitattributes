@@ -1,0 +1,21 @@
+# Normalise line endings so a Windows checkout and a Linux checkout produce the
+# same bytes. Text files are stored LF in the repository.
+* text=auto eol=lf
+
+# Not text: never touch these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.wasm binary
+*.exe binary
+
+# Build products. Generated, so keep them out of diffs and out of GitHub's
+# language statistics — the wasm bundle alone is over a megabyte and is not
+# hand-written source.
+rust/static/assets/* linguist-generated=true -diff
+rust/Cargo.lock linguist-generated=true

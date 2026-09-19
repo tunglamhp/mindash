@@ -1,0 +1,83 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Two things first:
+
+        - **Do not report security vulnerabilities here.** See
+          [SECURITY.md](https://github.com/tunglamhp/mindash/blob/main/SECURITY.md).
+        - Redact hostnames, IP addresses, MAC addresses and any password from
+          anything you paste.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you saw, and what you expected instead.
+      placeholder: |
+        1. Opened the Devices tab
+        2. Clicked Load stats on "nas"
+        3. The card shows an error instead of stats
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log
+      description: |
+        Run with `RUST_LOG=mindash=debug` and paste the relevant lines.
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `mindash --version`
+      placeholder: mindash 1.0.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Where MinDash is running
+      options:
+        - Linux (x86_64)
+        - Linux (arm64)
+        - macOS
+        - Windows
+        - Other or not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part
+      multiple: true
+      options:
+        - Dashboard / widgets
+        - Devices / stats
+        - Power control / wake-on-LAN
+        - Containers
+        - File browser
+        - Themes
+        - Login / auth
+        - Build or install
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config
+      description: The matching fragment of `config.json`, with secrets removed.
+      render: json
+    validations:
+      required: false

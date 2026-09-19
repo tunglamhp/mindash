@@ -1,0 +1,45 @@
+[package]
+name = "mindash-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "mindash"
+path = "src/main.rs"
+
+[dependencies]
+mindash-core = { path = "../core" }
+
+axum = "0.8"
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+
+# Password hashing and token signing. PBKDF2-HMAC-SHA256 rather than argon2 or
+# scrypt: it is pure Rust with no C toolchain, which keeps `cargo build` working
+# on a bare Windows or musl box. Iterations are stored in the hash so they can be
+# raised later without invalidating existing passwords.
+pbkdf2 = { version = "0.12", default-features = false, features = ["hmac"] }
+hmac = "0.12"
+sha2 = "0.10"
+rand = "0.8"
+base64 = "0.22"
+subtle = "2"
+
+# HTTP client for the weather and RSS widgets.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "gzip", "json"] }
+quick-xml = "0.37"
+
+tower-http = { version = "0.6", features = ["fs", "trace", "compression-gzip"] }
+
+# Server-sent events: one long-lived stream per client instead of a 5 s poll.
+async-stream = "0.3"
+futures-core = "0.3"
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "test-util"] }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f0f10">
+    <meta name="color-scheme" content="dark light">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="MinDash">
+    <title>MinDash</title>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="apple-touch-icon" href="/icon.svg">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="stylesheet" href="/assets/mindash-web.css">
+    <link rel="modulepreload" href="/assets/mindash-web.js">
+    <link rel="preload" href="/assets/mindash-web_bg.wasm" as="fetch" type="application/wasm" crossorigin>
+</head>
+<body>
+    <noscript>
+        <div class="notice notice-error" style="margin:24px">
+            MinDash needs JavaScript. The dashboard is a WebAssembly application.
+        </div>
+    </noscript>
+
+    <script type="module">
+        import init from "/assets/mindash-web.js";
+        // The server logs the real reason; this keeps the page from sitting on a
+        // blank screen if the bundle cannot start.
+        init().catch((err) => {
+            console.error("MinDash failed to start:", err);
+            document.body.insertAdjacentHTML(
+                "afterbegin",
+                '<div class="notice notice-error" style="margin:24px">' +
+                "MinDash could not start. Check the browser console and the server log." +
+                "</div>"
+            );
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # Fail on warnings; the workspace is clean and should stay that way.
+  RUSTFLAGS: -D warnings
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Check formatting
+        working-directory: rust
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: rust
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Unit tests
+        working-directory: rust
+        # RUSTFLAGS is cleared because `-D warnings` would otherwise turn a
+        # dependency's warning into a build failure of ours.
+        env:
+          RUSTFLAGS: ""
+        run: cargo test --workspace
+
+      - name: Build the server
+        working-directory: rust
+        env:
+          RUSTFLAGS: ""
+        run: cargo build --release -p mindash-server --bin mindash
+
+      - name: Build the wasm crate
+        working-directory: rust
+        env:
+          RUSTFLAGS: ""
+        run: cargo build --release --target wasm32-unknown-unknown -p mindash-web
+
+  api:
+    name: API audit
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Build
+        working-directory: rust
+        env:
+          RUSTFLAGS: ""
+        run: cargo build --release -p mindash-server --bin mindash
+
+      - name: Start the server
+        run: |
+          ./rust/target/release/mindash \
+            --port 5050 \
+            --data-dir "$RUNNER_TEMP/mindash-data" \
+            --static-dir ./rust/static &
+          for i in $(seq 1 40); do
+            curl -sf http://127.0.0.1:5050/api/version && break
+            sleep 0.5
+          done
+
+      - name: Audit the API
+        run: python3 tools/audit_rust.py --port 5050
+
+      - name: Audit authentication
+        run: python3 tools/audit_auth.py
+
+  browser:
+    name: Browser suites
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install wasm-bindgen
+        # Pinned to the version in Cargo.lock. The CLI must match the
+        # wasm-bindgen crate exactly, and a mismatch fails with a schema error
+        # that gives no hint about the cause.
+        run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+
+      - name: Build both artefacts
+        run: python3 tools/build_rust.py
+
+      - name: Start the server
+        run: |
+          ./rust/target/release/mindash \
+            --port 5050 \
+            --data-dir "$RUNNER_TEMP/mindash-data" \
+            --static-dir ./rust/static &
+          for i in $(seq 1 40); do
+            curl -sf http://127.0.0.1:5050/api/version && break
+            sleep 0.5
+          done
+
+      - name: Dashboard suite
+        run: node tools/verify_rust_ui.mjs 5050
+
+      - name: Control-plane UI suite
+        run: node tools/verify_control_ui.mjs 5050
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tools/shots/
+          if-no-files-found: ignore

@@ -1,0 +1,12 @@
+# Trunk build configuration for the MinDash web bundle.
+#
+# Output goes straight into the server's static assets directory, so `cargo run`
+# on the server picks up a fresh bundle with no copy step.
+[build]
+target = "index.html"
+dist = "../static/assets"
+# Keep the file names stable. Trunk's default content-hashed names would need
+# rewriting in the shell page on every build; a stable name keeps the two
+# decoupled.
+filehash = false
+minify = "on_release"

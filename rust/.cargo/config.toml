@@ -1,0 +1,13 @@
+﻿# Target-specific flags for the WebAssembly build.
+#
+# rustc 1.94 emits `memory.copy` for slice copies, which is a bulk-memory
+# operation. The wasm-opt bundled with trunk 0.21 (version 123) rejects it unless
+# `--enable-bulk-memory-opt` is passed, and trunk's `wasm_opt` config key only
+# selects a wasm-opt *version* -- it does not forward extra flags.
+#
+# Disabling the feature at codegen time keeps wasm-opt working. The cost is
+# negligible: the affected paths are memcpy-style slice copies.
+#
+# Scoped to wasm32, so the native server binary is unaffected.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=-bulk-memory"]

@@ -1,0 +1,47 @@
+name: Feature request
+description: Suggest a capability MinDash does not have
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MinDash has a deliberate scope: one binary, no runtime dependencies, no
+        database. Suggestions that keep it that way are much easier to accept.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: |
+        Describe the situation rather than the solution. "I cannot tell whether
+        the backup finished" is more useful than "add a progress bar".
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: If you have a shape in mind, describe it.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today
+      description: How do you handle this now? A shell script, another tool?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This can be done without adding a runtime dependency
+          required: false
+        - label: This can be done without a database or background daemon
+          required: false
+        - label: I am willing to work on it
+          required: false

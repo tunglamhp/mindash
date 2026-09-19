@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f0f10">
+    <meta name="color-scheme" content="dark light">
+    <title>Sign in · MinDash</title>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <style>
+        /* The login page is deliberately standalone: it must render before the
+           WASM bundle is needed, and it must work while unauthenticated. */
+        :root {
+            --bg: #0f0f10;
+            --surface: #181819;
+            --surface-2: #202023;
+            --border: #2b2b2e;
+            --text: #e8e8e6;
+            --text-muted: #a1a1a6;
+            --accent: #2ed573;
+            --danger: #ff4757;
+            --radius: 10px;
+            --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .brand svg { width: 26px; height: 26px; flex: 0 0 auto; display: block; }
+        .brand .glyph-main { fill: var(--accent); }
+        .brand .glyph-sub { fill: var(--text); opacity: 0.85; }
+        .brand .glyph-sub-2 { fill: var(--text-muted); opacity: 0.9; }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: min(320px, 88vw);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+        label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        input {
+            font: inherit;
+            color: var(--text);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            width: 100%;
+        }
+        input:focus-visible,
+        button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        button {
+            font: inherit;
+            font-weight: 550;
+            color: var(--bg);
+            background: var(--accent);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            min-height: 38px;
+            cursor: pointer;
+        }
+        .error {
+            color: var(--danger);
+            font-size: 13px;
+            min-height: 18px;
+            margin: 0;
+        }
+        .hint { color: var(--text-muted); font-size: 12px; text-align: center; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    </style>
+</head>
+<body>
+    <div class="brand" role="img" aria-label="MinDash">
+        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+            <rect class="glyph-main" x="4" y="10" width="18" height="44" rx="6"/>
+            <rect class="glyph-sub" x="27" y="10" width="33" height="20" rx="6"/>
+            <rect class="glyph-sub glyph-sub-2" x="27" y="35" width="33" height="19" rx="6"/>
+        </svg>
+        <span aria-hidden="true">MinDash</span>
+    </div>
+    <form id="login-form">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password"
+               autofocus aria-describedby="error" required>
+        <button type="submit">Sign in</button>
+        <p class="error" id="error" role="alert" aria-live="polite"></p>
+    </form>
+    <p class="hint">MinDash is a control layer for your homelab. Keep it behind a VPN.</p>
+
+    <script>
+        const form = document.getElementById("login-form");
+        const error = document.getElementById("error");
+        const input = document.getElementById("password");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            error.textContent = "";
+            try {
+                const res = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: input.value }),
+                });
+                if (res.ok) {
+                    window.location.replace("/");
+                    return;
+                }
+                const body = await res.json().catch(() => ({}));
+                error.textContent = body.error || "Sign in failed";
+            } catch (e) {
+                error.textContent = "Could not reach the server";
+            }
+            input.value = "";
+            input.focus();
+        });
+    </script>
+</body>
+</html>

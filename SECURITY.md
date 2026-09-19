@@ -23,6 +23,17 @@ can do all of that.
 
 It is built for a trusted network. Treat it accordingly.
 
+### Your responsibility
+
+By installing and using MinDash you accept full responsibility for:
+
+- securing your network and your systems
+- restricting access, for example to a VPN such as WireGuard or Tailscale
+- any damage resulting from misconfiguration or unauthorised access
+
+This software is provided "as is", without warranty of any kind, under the
+[MIT licence](LICENSE).
+
 ### Authentication is off by default
 
 With no password set, **anyone who can reach the port has full control.** This is

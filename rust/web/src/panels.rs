@@ -177,7 +177,12 @@ fn DeviceCard(device: mindash_core::Device, online: bool) -> impl IntoView {
             let disk_rows = disks
                 .into_iter()
                 .map(|(mount, used, total)| {
-                    let pct = if total > 0 { used * 100 / total } else { 0 };
+                    // A filesystem reporting zero total would divide by zero;
+                    // show no percentage rather than a bogus one.
+                    let pct = used
+                        .checked_mul(100)
+                        .and_then(|p| p.checked_div(total))
+                        .unwrap_or(0);
                     let used_h = api::human_size(used);
                     let total_h = api::human_size(total);
                     view! {

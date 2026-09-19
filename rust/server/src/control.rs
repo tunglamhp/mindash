@@ -31,15 +31,25 @@ fn json_error(status: StatusCode, message: &str) -> Response {
     (status, Json(json!({ "success": false, "error": message }))).into_response()
 }
 
-/// Look up a device, or produce a 404.
-async fn device_by_id(state: &AppState, id: &str) -> Result<Device, Response> {
-    state
-        .config()
-        .await
-        .devices
-        .into_iter()
-        .find(|d| d.id == id)
-        .ok_or_else(|| json_error(StatusCode::NOT_FOUND, "Unknown device"))
+/// Look up a device by id, or return 404 from the enclosing handler.
+///
+/// A macro rather than a `Result<_, Response>` helper: `Response` is a large
+/// type, and returning it as an error variant tripped `clippy::result_large_err`
+/// on every call. This keeps the 404 in one place without paying for it on each
+/// return path.
+macro_rules! device_or_404 {
+    ($state:expr, $id:expr) => {
+        match $state
+            .config()
+            .await
+            .devices
+            .into_iter()
+            .find(|d| d.id == $id)
+        {
+            Some(d) => d,
+            None => return json_error(StatusCode::NOT_FOUND, "Unknown device"),
+        }
+    };
 }
 
 /// Build an SSH target from stored config. Never from request input.
@@ -91,10 +101,7 @@ pub async fn devices_status(State(state): State<Arc<AppState>>) -> Json<serde_js
 
 /// CPU, memory, temperature, uptime and disks for one device.
 pub async fn device_stats(State(state): State<Arc<AppState>>, Path(id): Path<String>) -> Response {
-    let device = match device_by_id(&state, &id).await {
-        Ok(d) => d,
-        Err(resp) => return resp,
-    };
+    let device = device_or_404!(state, id);
 
     let result = if device.is_local() {
         // The local machine is read directly. Going out to an sshd and back
@@ -135,10 +142,7 @@ pub async fn device_power(
     Path(id): Path<String>,
     Json(body): Json<PowerBody>,
 ) -> Response {
-    let device = match device_by_id(&state, &id).await {
-        Ok(d) => d,
-        Err(resp) => return resp,
-    };
+    let device = device_or_404!(state, id);
     if device.is_host {
         // Shutting down the machine the server runs on would end the session
         // mid-request and leave the user with a dead dashboard and no answer.
@@ -161,10 +165,7 @@ pub async fn device_power(
 
 /// Wake a device over the network.
 pub async fn device_wake(State(state): State<Arc<AppState>>, Path(id): Path<String>) -> Response {
-    let device = match device_by_id(&state, &id).await {
-        Ok(d) => d,
-        Err(resp) => return resp,
-    };
+    let device = device_or_404!(state, id);
     let Some(wol) = device.wol.as_ref() else {
         return json_error(StatusCode::BAD_REQUEST, "No wake-on-LAN MAC configured");
     };
@@ -317,10 +318,7 @@ pub async fn files_list(
     Path(id): Path<String>,
     Query(q): Query<PathQuery>,
 ) -> Response {
-    let device = match device_by_id(&state, &id).await {
-        Ok(d) => d,
-        Err(resp) => return resp,
-    };
+    let device = device_or_404!(state, id);
     let root = device.files_root();
 
     // The host is read locally; everything else over SSH. See the note in
@@ -375,10 +373,7 @@ pub async fn files_read(
     Path(id): Path<String>,
     Query(q): Query<PathQuery>,
 ) -> Response {
-    let device = match device_by_id(&state, &id).await {
-        Ok(d) => d,
-        Err(resp) => return resp,
-    };
+    let device = device_or_404!(state, id);
     let root = device.files_root();
 
     let result = if device.is_local() {

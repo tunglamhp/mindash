@@ -288,16 +288,16 @@ async fn fetch_feed(state: &AppState, url: &str) -> Result<Vec<Value>, String> {
                 }
             }
             Ok(quick_xml::events::Event::End(e)) => match e.name().as_ref() {
-                b"item" | b"entry" => {
-                    if in_item {
-                        in_item = false;
-                        if !title.is_empty() {
-                            items.push(json!({
-                                "title": title.chars().take(180).collect::<String>(),
-                                "link": link,
-                                "feed": host,
-                            }));
-                        }
+                // A closing tag only ends an item that was open. A stray end tag
+                // outside an item is ignored.
+                b"item" | b"entry" if in_item => {
+                    in_item = false;
+                    if !title.is_empty() {
+                        items.push(json!({
+                            "title": title.chars().take(180).collect::<String>(),
+                            "link": link,
+                            "feed": host,
+                        }));
                     }
                 }
                 _ => {}
